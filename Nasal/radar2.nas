@@ -1342,4 +1342,10 @@ var switch_distance = func(){
     RangeSelected.setValue(rangeTab[rangeIndex]);
     setprop("instrumentation/radar/range", rangeTab[rangeIndex]);
 }
-
+if(GetTarget()!=nil){
+        screen.log.write("Radar: Locked "~tgts_list[Target_Index].Callsign.getValue(),1,1,0);
+    }else{
+        screen.log.write("Failed to lock!",1,1,0);
+        lock = 0;
+        #Target_Index = -1;
+    }
