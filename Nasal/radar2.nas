@@ -1,7 +1,7 @@
 #print("LOADING radar2.nas .");
 ################################################################################
 #
-#           Customized version of radar2 for the Su-27SK
+#           Customized version of radar2 for the SU-27SK
 #
 ################################################################################
 
@@ -11,7 +11,7 @@
 # inspired by Alexis Bory (xiii)
 
 var UPDATE_PERIOD = 0.1; # update interval for engine init() functions
-
+var lock              = 0;
 var ElapsedSec        = props.globals.getNode("sim/time/elapsed-sec");
 var DisplayRdr        = props.globals.getNode("instrumentation/radar/display-rdr");
 var AzField           = props.globals.getNode("instrumentation/radar/az-field");
@@ -37,6 +37,9 @@ var OurPitch          = props.globals.getNode("orientation/pitch-deg");
 var EcmOn             = props.globals.getNode("instrumentation/ecm/on-off", 1);
 var EcmAlert1         = props.globals.getNode("instrumentation/ecm/alert-type1", 1);
 var EcmAlert2         = props.globals.getNode("instrumentation/ecm/alert-type2", 1);
+
+var flareProp = "rotors/main/blade[3]/flap-deg";
+var chaffProp = "rotors/main/blade[3]/position-deg";
 
 var az_fld            = AzField.getValue();
 var l_az_fld          = 0;
@@ -206,7 +209,49 @@ var Radar = {
                 #screen.log.write("New target detected.",255,255,0);
                 
                 #print("Testing "~ u.get_Callsign()~"Type: " ~ type);
-                
+	
+        var i = 0;	
+        while(i < size(tgts_list))	
+        {	
+            var c = tgts_list[i];	
+            if(c == nil or c.valid == nil or (!c.valid.getValue()))	
+            {	
+                if(c!=nil){	
+                    print("killing target" ~ c.get_Callsign());	
+                }	
+                print("kill");	
+                c.set_nill();	
+                me.TargetList_RemovingTarget(u);	
+                if(i == Target_Index){	
+                    lock = 0;	
+                    Target_Index = -1;	
+                }	
+                if( i < Target_Index){	
+                    Target_index = Target_Index - 1;	
+                }	
+            }	
+            i = i + 1;	
+        }	
+        if(lock){	
+            if(Target_Index == -1){	
+                lock = 0;	
+                return;	
+            }	
+            if(size(tgts_list)-1 < Target_Index){	
+                lock=0;	
+                #Target_Index=-1;	
+                return;	
+            }elsif(tgts_list[Target_Index] == nil){	
+                lock=0;	
+                #Target_Index=-1;	
+                return;	
+            }elsif(!(tgts_list[Target_Index].Display != nil) or !tgts_list[Target_Index].Display.getValue()){	
+                lock=0;	
+                #Target_Index=-1;	
+            }	
+        }
+
+
                 # set Check_List to void
                 me.Check_List = [];
                 # this function do all the checks and put all result of each
